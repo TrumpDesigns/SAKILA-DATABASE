@@ -1,0 +1,23 @@
+WITH Top_Customer AS 
+( SELECT c.customer_id as id, c.first_name, c.last_name, SUM(p.amount)
+FROM CUSTOMER C
+JOIN rental R
+ON r.customer_id=c.customer_id
+JOIN payment p
+ON r.customer_id=p.customer_id
+GROUP BY 1,2,3
+ORDER BY 4 DESC LIMIT 10)
+
+SELECT 	
+date_of_payment AS MONTH, CONCAT(first_name, ' ', last_name) AS FULL_NAME, PAYSUM AS Pay_Amount,
+LAG(paysum) OVER (PARTITION BY CONCAT(first_name, ' ', last_name) ORDER BY date_of_payment) AS Previous_month_pay, PAYSUM - LAG(paysum) OVER (PARTITION BY CONCAT(first_name, ' ', last_name) ORDER BY date_of_payment)  AS Difference
+
+FROM 
+(
+SELECT DATE_TRUNC('MONTH', p.payment_date) as Date_Of_Payment, tc.id AS IDD,tc.first_name, tc.last_name, sum(amount) PAYSUM , count(p.payment_id) PAYCO
+
+FROM payment p
+RIGHT JOIN Top_Customer tc
+ON tc.id=p.customer_id
+GROUP BY 1,3,2,4
+) AS T1

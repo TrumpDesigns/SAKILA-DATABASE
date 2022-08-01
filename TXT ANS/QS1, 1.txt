@@ -1,0 +1,20 @@
+SELECT film_name, Category_name, Rental_count
+FROM
+(SELECT f.title AS film_Name, c.name Category_Name,  count(r.rental_id) AS Rental_Count
+FROM Category c
+LEFT JOIN film_category fc
+ON fc.category_id=c.category_id
+JOIN film f
+ON f.film_id=fc.film_id
+JOIN inventory i
+ON f.film_id=i.film_id
+JOIN Rental R
+ON i.inventory_id=r.inventory_id
+GROUP BY 1,2
+ORDER BY 2,1) AS MOVIE 
+WHERE category_name= 'Animation' 
+OR category_name = 'Children' 
+OR category_name = 'Classics' 
+OR category_name = 'Comedy'
+OR category_name = 'Family' 
+OR category_name = 'Music'

@@ -1,0 +1,32 @@
+WITH Top_Customer AS 
+( SELECT c.customer_id, c.first_name, c.last_name, SUM(p.amount)
+FROM CUSTOMER C
+JOIN rental R
+ON r.customer_id=c.customer_id
+JOIN payment p
+ON r.customer_id=p.customer_id
+GROUP BY 1,2,3
+ORDER BY 4 DESC LIMIT 10),
+
+t2 AS 
+(SELECT c.customer_id, DATE_TRUNC('MONTH', p.payment_date) AS MONTH, count(p.payment_ID) AS pay_countpermonth, SUM(p.amount) AS pay_amount
+FROM CUSTOMER C
+JOIN rental R
+ON r.customer_id=c.customer_id
+JOIN payment p
+ON r.customer_id=p.customer_id
+GROUP BY 1,2)
+
+SELECT full_name, pay_month, pay_amount, 
+LEAD(pay_amount) OVER (PARTITION BY full_name ORDER BY pay_month), LEAD(pay_amount) OVER (PARTITION BY full_name ORDER BY pay_month)-pay_amount AS Difference
+
+FROM 
+
+(SELECT t2.month AS pay_month, CONCAT(tc.first_name, ' ', tc.last_name) AS full_name, t2.pay_countpermonth, t2.pay_amount
+FROM TOP_CUSTOMER TC
+LEFT JOIN t2
+ON tc.customer_id=t2.customer_id
+ORDER BY 2,1) AS T3
+ORDER BY full_name
+
+
