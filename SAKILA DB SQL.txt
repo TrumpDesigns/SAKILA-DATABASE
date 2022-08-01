@@ -1,0 +1,85 @@
+/* QUERY 1- USED FOR FIRST SLIDE*/
+SELECT film_name, Category_name, Rental_count
+FROM
+(SELECT f.title AS film_Name, c.name Category_Name,  count(r.rental_id) AS Rental_Count
+FROM Category c
+LEFT JOIN film_category fc
+ON fc.category_id=c.category_id
+JOIN film f
+ON f.film_id=fc.film_id
+JOIN inventory i
+ON f.film_id=i.film_id
+JOIN Rental R
+ON i.inventory_id=r.inventory_id
+GROUP BY 1,2
+ORDER BY 2,1) AS MOVIE 
+WHERE category_name= 'Animation' 
+OR category_name = 'Children' 
+OR category_name = 'Classics' 
+OR category_name = 'Comedy'
+OR category_name = 'Family' 
+OR category_name = 'Music'
+
+
+
+/* QUERY 2- USED FOR SECOND SLIDE*/
+WITH T1 AS (SELECT DATE_TRUNC('month', r.rental_date) AS Order_date, c.store_id , count(r.rental_id) AS RENTAL_COUNT
+FROM rental r
+JOIN customer c
+ON c.customer_id=r.customer_id
+GROUP BY 1,2)
+
+SELECT extract(month from order_date) AS Rental_month, extract(year from order_date) AS Rental_year,
+     store_id, rental_count
+FROM T1
+ORDER BY rental_count DESC
+
+
+
+/* QUERY 3- USED FOR THIRD SLIDE*/
+WITH Top_Customer AS 
+( SELECT c.customer_id as id, c.first_name, c.last_name, SUM(p.amount)
+FROM CUSTOMER C
+JOIN rental R
+ON r.customer_id=c.customer_id
+JOIN payment p
+ON r.customer_id=p.customer_id
+GROUP BY 1,2,3
+ORDER BY 4 DESC LIMIT 10)
+
+SELECT Date_Of_Payment, CONCAT(first_name, ' ', last_name) AS FULL_NAME, PAYCO AS Pay_COUNTPERMONTH,  PAYSUM AS Pay_Amount
+FROM (SELECT DATE_TRUNC('MONTH', p.payment_date) as Date_Of_Payment, tc.id AS IDD,tc.first_name, tc.last_name, sum(amount) PAYSUM , count(p.payment_id) PAYCO
+FROM payment p
+RIGHT JOIN Top_Customer tc
+ON tc.id=p.customer_id
+GROUP BY 1,3,2,4
+) AS T1
+ORDER BY 2,1
+
+
+
+
+/* QUERY 4- USED FOR FOURTH SLIDE*/
+WITH Top_Customer AS 
+( SELECT c.customer_id as id, c.first_name, c.last_name, SUM(p.amount)
+FROM CUSTOMER C
+JOIN rental R
+ON r.customer_id=c.customer_id
+JOIN payment p
+ON r.customer_id=p.customer_id
+GROUP BY 1,2,3
+ORDER BY 4 DESC LIMIT 10)
+
+SELECT 	
+date_of_payment AS MONTH, CONCAT(first_name, ' ', last_name) AS FULL_NAME, PAYSUM AS Pay_Amount,
+LAG(paysum) OVER (PARTITION BY CONCAT(first_name, ' ', last_name) ORDER BY date_of_payment) AS Previous_month_pay, PAYSUM - LAG(paysum) OVER (PARTITION BY CONCAT(first_name, ' ', last_name) ORDER BY date_of_payment)  AS Difference
+
+FROM 
+(
+SELECT DATE_TRUNC('MONTH', p.payment_date) as Date_Of_Payment, tc.id AS IDD,tc.first_name, tc.last_name, sum(amount) PAYSUM , count(p.payment_id) PAYCO
+
+FROM payment p
+RIGHT JOIN Top_Customer tc
+ON tc.id=p.customer_id
+GROUP BY 1,3,2,4
+) AS T1

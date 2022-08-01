@@ -1,0 +1,11 @@
+rental_month,rental_year,store_id,rental_count
+July     ,2005,1,3677
+August   ,2005,1,3091
+July     ,2005,2,3032
+August   ,2005,2,2595
+June     ,2005,1,1243
+June     ,2005,2,1068
+May      ,2005,1,638
+May      ,2005,2,518
+February ,2006,1,98
+February ,2006,2,84

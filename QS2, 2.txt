@@ -1,0 +1,18 @@
+WITH Top_Customer AS 
+( SELECT c.customer_id as id, c.first_name, c.last_name, SUM(p.amount)
+FROM CUSTOMER C
+JOIN rental R
+ON r.customer_id=c.customer_id
+JOIN payment p
+ON r.customer_id=p.customer_id
+GROUP BY 1,2,3
+ORDER BY 4 DESC LIMIT 10)
+
+SELECT Date_Of_Payment, CONCAT(first_name, ' ', last_name) AS FULL_NAME, PAYCO AS Pay_COUNTPERMONTH,  PAYSUM AS Pay_Amount
+FROM (SELECT DATE_TRUNC('MONTH', p.payment_date) as Date_Of_Payment, tc.id AS IDD,tc.first_name, tc.last_name, sum(amount) PAYSUM , count(p.payment_id) PAYCO
+FROM payment p
+RIGHT JOIN Top_Customer tc
+ON tc.id=p.customer_id
+GROUP BY 1,3,2,4
+) AS T1
+ORDER BY 2,1
